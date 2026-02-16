@@ -8,7 +8,8 @@ mt5 = MetaTrader5()
 class GridBot:
     def __init__(self, config):
         # Account Credentials
-        self.login = config.get('acc_id')
+        self.acc_id = config.get('acc_id')
+        self.login = config.get('login')
         self.password = config.get('password')
         self.server = config.get('server')
         self.terminal_path = config.get('terminal_path')
@@ -20,6 +21,7 @@ class GridBot:
         self.tp_distance = config.get('tp')  # distance for Take Profit
         self.magic_number = config.get('magic', 999)
         self.active = config.get('active')
+        self.max_position = config.get('max_position')
 
         # Internal State
         self.ath_tracker = 0.0
@@ -32,6 +34,7 @@ class GridBot:
         self.grid_step = config.get('grid_step')
         self.tp_distance = config.get('tp')  # distance for Take Profit
         self.magic_number = config.get('magic', 999)
+        self.max_position = config.get('max_position')
         self.active = config.get('active')
 
     def initialize(self):
@@ -74,6 +77,7 @@ class GridBot:
     def tick(self):
         if self.active == 0:
             return
+
         """Main logic loop to be called every second."""
         tick_info = mt5.symbol_info_tick(self.symbol)
         if tick_info is None:
@@ -81,6 +85,8 @@ class GridBot:
 
         current_ask = tick_info.ask
         positions = mt5.positions_get(symbol=self.symbol, magic=self.magic_number)
+        if len(positions) >= self.max_position:
+            return
 
         if not positions:
             # Logic for first entry

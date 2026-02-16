@@ -28,7 +28,7 @@ def start_bot_threads(acc_id, credential):
     """Launcher: Sets up both threads for one account"""
     settings = find_by_acc_id(acc_id)
     if not settings: return
-
+    settings["login"] = credential["login"]
     settings['password'] = credential["password"]  # "M@12919953m"
     settings['server'] = credential["server"]  # "Exness-MT5Real20"
     settings['terminal_path'] = credential["meta_path"]  # "/path/to/terminal64.exe"
