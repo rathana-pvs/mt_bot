@@ -226,7 +226,7 @@
             client.subscribe(myResponseTopic, () => {
                 const requestPayload = {
                     action: "find_data_acc_id",
-                    acc_id: parseInt(accId)
+                    acc_id: accId
                 };
                 console.log("on connect")
                 
@@ -275,7 +275,7 @@
         const payload = {
             action: "update_data_acc_id",
             payload: {
-                acc_id: parseInt(document.getElementById('acc_id').value),
+                acc_id: document.getElementById('acc_id').value,
                 pair: document.getElementById('pair').value,
                 lot_size: parseFloat(document.getElementById('lot_size').value),
                 grid_step: parseInt(document.getElementById('grid_step').value),
