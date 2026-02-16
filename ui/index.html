@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Bot Mobile UI</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+            --input-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Mobile Screen Container */
+        .mobile-container {
+            height: 100vh;
+            background: var(--card);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 30px 20px 20px;
+            background: linear-gradient(to bottom, #2563eb, #1e40af);
+            text-align: center;
+        }
+
+        .header h2 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; }
+        
+        #status-indicator {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .dot { width: 8px; height: 8px; background: var(--danger); border-radius: 50%; }
+        .dot.online { background: var(--secondary); box-shadow: 0 0 8px var(--secondary); }
+
+        /* Form Area */
+        .form-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .form-content::-webkit-scrollbar { display: none; }
+
+        .input-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #aaa;
+            margin-bottom: 5px;
+            margin-left: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 1px solid #444;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .button-group {
+            padding: 20px;
+            background: var(--card);
+            border-top: 1px solid #333;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #connect-btn { background-color: var(--secondary); color: white; }
+        #update-btn { background-color: var(--primary); color: white; }
+
+        .log-box {
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    <div class="header">
+        <h2>TRADER BOT v1.0</h2>
+        <div id="status-indicator">
+            <div class="dot" id="status-dot"></div>
+            <span id="status-text">DISCONNECTED</span>
+        </div>
+    </div>
+
+    <div class="form-content">
+        <div class="input-group">
+            <label>Account ID (Primary Key)</label>
+            <input type="number" id="acc_id" value="1001">
+        </div>
+
+        <div class="input-group">
+            <label>Trading Pair</label>
+            <input type="text" id="pair" disabled>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+                <label>Lot Size</label>
+                <input type="number" id="lot_size" step="0.01" disabled>
+            </div>
+            <div class="input-group" style="flex: 1;">
+                <label>Grid Step</label>
+                <input type="number" id="grid_step" disabled>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+                <label>Take Profit</label>
+                <input type="number" id="tp" step="0.1" disabled>
+            </div>
+            <div class="input-group" style="flex: 1;">
+                <label>Max Positions</label>
+                <input type="number" id="max_position" disabled>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Bot Status</label>
+            <select id="active">
+                <option value="1">ENABLED</option>
+                <option value="0">DISABLED</option>
+            </select>
+        </div>
+        
+        <div class="log-box" id="log">Ready to connect...</div>
+    </div>
+
+    <div class="button-group">
+        <button class="btn" id="connect-btn">INITIALIZE CONNECTION</button>
+        <button class="btn" id="update-btn" disabled>UPDATE PARAMETERS</button>
+    </div>
+</div>
+
+<script>
+    let client = null;
+    const BROKER = "wss://broker.hivemq.com:8884/mqtt";
+    const COMMAND_TOPIC = "9Z4nU6wmx2o2Kz81";
+
+    // Selectors
+    const accIdInput = document.getElementById('acc_id');
+    const allInputs = document.querySelectorAll('input:not(#acc_id), select');
+    const connectBtn = document.getElementById('connect-btn');
+    const updateBtn = document.getElementById('update-btn');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const logBox = document.getElementById('log');
+
+    // 1. On Page Load: Check LocalStorage
+    window.onload = () => {
+        const savedId = localStorage.getItem('last_acc_id');
+        if (savedId) {
+            accIdInput.value = savedId;
+            logBox.innerText = "Welcome back. Click Initialize.";
+        }
+    };
+
+    connectBtn.addEventListener('click', () => {
+        const accId = accIdInput.value;
+        if (!accId) return alert("Please enter your Account ID.");
+
+        const myResponseTopic = `trading_bot/responses/${accId}`;
+        logBox.innerText = `Requesting data for ${accId}...`;
+        if(client){
+            // Optional: Provide a callback to know when it's officially closed
+            client.end(() => {
+                console.log("MQTT Client safely disconnected");
+            });
+        }
+        client = mqtt.connect(BROKER, { protocolVersion: 5 });
+
+        client.on('connect', () => {
+            // Subscribe to private response channel
+            client.subscribe(myResponseTopic, () => {
+                const requestPayload = {
+                    action: "find_data_acc_id",
+                    acc_id: parseInt(accId)
+                };
+                console.log("on connect")
+                
+                // Request the "Handshake"
+                client.publish(COMMAND_TOPIC, JSON.stringify(requestPayload), {
+                    properties: { responseTopic: myResponseTopic }
+                });
+            });
+        });
+
+        client.on('message', (topic, message) => {
+            if (topic === myResponseTopic) {
+                const result = JSON.parse(message.toString());
+                console.log(result)
+                if (result.type === "data") {
+                    // 2. SUCCESS: Save ID to local storage
+                    localStorage.setItem('last_acc_id', accId);
+                    
+                    // 3. UNLOCK: Enable inputs and update UI
+                    allInputs.forEach(input => input.disabled = false);
+                    accIdInput.disabled = true; // Lock the ID once verified
+                    
+                    statusDot.classList.add('online');
+                    statusText.innerText = "VERIFIED";
+                    logBox.innerText = "Success: Account Synced";
+                    const {payload} = result
+                    // 4. SYNC: Populate fields with data from Python Bot
+                    document.getElementById('pair').value = payload.pair;
+                    document.getElementById('lot_size').value = payload.lot_size;
+                    document.getElementById('grid_step').value = payload.grid_step;
+                    document.getElementById('tp').value = payload.tp;
+                    document.getElementById('max_position').value = payload.max_position;
+                    document.getElementById('active').value = payload.active;
+
+                    updateBtn.disabled = false;
+                    connectBtn.innerText = "SYNCED";
+                } else {
+                    logBox.innerText = "Error: Invalid Account ID";
+                    client.end();
+                }
+            }
+        });
+    });
+    updateBtn.addEventListener('click', () => {
+        // Collect data from inputs
+        const payload = {
+            action: "update_data_acc_id",
+            payload: {
+                acc_id: parseInt(document.getElementById('acc_id').value),
+                pair: document.getElementById('pair').value,
+                lot_size: parseFloat(document.getElementById('lot_size').value),
+                grid_step: parseInt(document.getElementById('grid_step').value),
+                tp: parseFloat(document.getElementById('tp').value),
+                max_position: parseInt(document.getElementById('max_position').value),
+                active: parseInt(document.getElementById('active').value),
+                // updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
+            }
+        };
+            const myResponseTopic = `trading_bot/responses/${payload.payload.acc_id}`;
+        if (client && client.connected) {
+            console.log("sent paylod: ", payload)
+            client.publish(COMMAND_TOPIC, JSON.stringify(payload), {
+                    properties: { responseTopic: myResponseTopic }
+                });
+            logBox.innerText = `Update broadcasted at ${new Date().toLocaleTimeString()}`;
+            
+            // Visual feedback
+            updateBtn.innerText = "SENT!";
+            setTimeout(() => { updateBtn.innerText = "UPDATE PARAMETERS"; }, 2000);
+        }
+    });
+</script>
+
+</body>
+</html>
