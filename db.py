@@ -32,8 +32,7 @@ db.create_tables([BotConfig])
 
 
 def find_by_acc_id(acc_id):
-    bot = BotConfig.get_or_none(BotConfig.acc_id == acc_id)
-
+    bot = BotConfig.get_or_none(BotConfig.acc_id == acc_id.strip())
     if bot:
         data = model_to_dict(bot)
         # Convert the datetime object to a string format JSON understands
@@ -49,14 +48,14 @@ def update_existing_bot(payload):
     data = payload.copy()
     target_id = data.pop('acc_id', None)
     print(data)
-    bot = BotConfig.get_or_none(BotConfig.acc_id == target_id)
+    bot = BotConfig.get_or_none(BotConfig.acc_id == target_id.strip())
     if target_id is None:
         print("Error: No acc_id provided in payload")
         return
 
     # 2. Perform the update
     # Peewee's .update(**data) matches keys to columns automatically
-    query = BotConfig.update(**data).where(BotConfig.acc_id == target_id)
+    query = BotConfig.update(**data).where(BotConfig.acc_id == target_id.strip())
     rows_affected = query.execute()
 
     if rows_affected == 0:

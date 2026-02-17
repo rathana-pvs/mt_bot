@@ -37,7 +37,7 @@ def on_message(client, userdata, msg):
                     failure(client, response_topic)
             case "update_data_acc_id":
                 update_payload = data.get('payload')
-                print(update_payload)
+
                 result = update_existing_bot(update_payload)
                 if result:
                     success(client, response_topic)
