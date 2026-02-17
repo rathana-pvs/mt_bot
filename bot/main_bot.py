@@ -1,9 +1,5 @@
+import MetaTrader5 as mt5
 
-import time
-
-from mt5linux import MetaTrader5
-
-mt5 = MetaTrader5()
 
 class GridBot:
     def __init__(self, config):
