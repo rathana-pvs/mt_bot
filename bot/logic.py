@@ -9,6 +9,10 @@ def run_trading_ticks(bot_instance):
     while bot_instance.is_running:
         bot_instance.tick()
         time.sleep(0.1)
+        if bot_instance.count >= 20:
+            print(bot_instance.log_message)
+            bot_instance.count = 0
+
     print(f"[{bot_instance.login}] Trading thread stopped.")
 
 
@@ -20,7 +24,7 @@ def run_param_sync(bot_instance, acc_id):
         new_settings = find_by_acc_id(acc_id)
         if new_settings:
             bot_instance.update_trade_params(new_settings)
-            print(f"[{acc_id}] Parameters updated from DB.")
+            # print(f"[{acc_id}] Parameters updated from DB.")
     print(f"[{bot_instance.login}] Sync thread stopped.")
 
 
