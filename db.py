@@ -22,7 +22,7 @@ class BotConfig(Model):
     tp = FloatField()
     max_position = IntegerField()
     active = IntegerField(default=1)
-    updated_at = DateTimeField(default=datetime.datetime.now)
+    # updated_at = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         database = db
@@ -31,7 +31,7 @@ class BotLog(Model):
     id = PrimaryKeyField()
     acc_id = ForeignKeyField(BotConfig, on_delete='CASCADE')
     log = TextField()
-    updated_at = DateTimeField(default=datetime.datetime.now)
+    # updated_at = DateTimeField(default=datetime.datetime.now)
     class Meta:
         database = db
 
@@ -43,9 +43,9 @@ def find_by_acc_id(acc_id):
     bot = BotConfig.get_or_none(BotConfig.acc_id == acc_id.strip())
     if bot:
         data = model_to_dict(bot)
-        # Convert the datetime object to a string format JSON understands
-        if data.get('updated_at'):
-            data['updated_at'] = data['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+        # # Convert the datetime object to a string format JSON understands
+        # if data.get('updated_at'):
+        #     data['updated_at'] = data['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
         return data
 
     return None
