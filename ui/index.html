@@ -176,6 +176,7 @@
         </div>
         
         <div class="log-box" id="log">Ready to connect...</div>
+        <div class="log-box" id="bot_log"></div>
     </div>
 
     <div class="button-group">
@@ -197,6 +198,7 @@
     const statusDot = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
     const logBox = document.getElementById('log');
+    const botLogBox = document.getElementById("bot_log")
 
     // 1. On Page Load: Check LocalStorage
     window.onload = () => {
@@ -212,6 +214,7 @@
         if (!accId) return alert("Please enter your Account ID.");
 
         const myResponseTopic = `trading_bot/responses/${accId}`;
+        const logTopic = `trading_bot/log/${accId}`
         logBox.innerText = `Requesting data for ${accId}...`;
         if(client){
             // Optional: Provide a callback to know when it's officially closed
@@ -223,6 +226,7 @@
 
         client.on('connect', () => {
             // Subscribe to private response channel
+            client.subscribe(logTopic)
             client.subscribe(myResponseTopic, () => {
                 const requestPayload = {
                     action: "find_data_acc_id",
@@ -267,6 +271,8 @@
                     logBox.innerText = "Error: Invalid Account ID";
                     client.end();
                 }
+            }else if(topic === logTopic){
+                botLogBox.innerText = message.toString()
             }
         });
     });

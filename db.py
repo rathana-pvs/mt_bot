@@ -27,8 +27,16 @@ class BotConfig(Model):
     class Meta:
         database = db
 
+class BotLog(Model):
+    id = PrimaryKeyField()
+    acc_id = ForeignKeyField(BotConfig, on_delete='CASCADE')
+    log = TextField()
+    updated_at = DateTimeField(default=datetime.datetime.now)
+    class Meta:
+        database = db
+
 db.connect()
-db.create_tables([BotConfig])
+db.create_tables([BotConfig, BotLog])
 
 
 def find_by_acc_id(acc_id):

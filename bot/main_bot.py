@@ -13,6 +13,7 @@ class GridBot:
         self.password = config.get('password')
         self.server = config.get('server')
         self.terminal_path = config.get('terminal_path')
+        self.name = config.get('name')
 
         # # Trading Parameters
         self.symbol = config.get('pair')
@@ -22,10 +23,13 @@ class GridBot:
         self.magic_number = config.get('magic', 999)
         self.active = config.get('active')
         self.max_position = config.get('max_position')
-
+        self.count = 0
         # Internal State
         self.ath_tracker = 0.0
         self.is_running = False
+
+        # Log Message
+        self.log_message = ""
 
     def update_trade_params(self, config):
         # Trading Parameters
@@ -75,17 +79,21 @@ class GridBot:
         return result
 
     def tick(self):
+        self.count += 1
         if self.active == 0:
+            self.log_message = f"[{self.active}] bot is disabled"
             return
 
         """Main logic loop to be called every second."""
         tick_info = mt5.symbol_info_tick(self.symbol)
         if tick_info is None:
+            self.log_message = f"[{self.symbol}] is not available"
             return
 
         current_ask = tick_info.ask
         positions = mt5.positions_get(symbol=self.symbol, magic=self.magic_number)
         if len(positions) >= self.max_position:
+            self.log_message = f"[{len(positions)}] is over max position: [{self.max_position}]"
             return
 
         if not positions:
@@ -94,6 +102,7 @@ class GridBot:
                 self.ath_tracker = current_ask
 
             target_price = self.ath_tracker - self.grid_step
+            self.log_message = f"[{self.name}] | Price: {current_ask:.3f} | Peak: {self.ath_tracker:.3f} | Buy at: {target_price:.3f}"
             print(
                 f"[{self.login}] Price: {current_ask:.3f} | Peak: {self.ath_tracker:.3f} | Buy at: {target_price:.3f}",
                 end="\r")
@@ -105,8 +114,10 @@ class GridBot:
             # Logic for grid averaging
             lowest_entry = min([p.price_open for p in positions])
             target_grid = lowest_entry - self.grid_step
+            self.log_message = f"[{self.name}] | Price: {current_ask:.3f} | Lowest: {lowest_entry:.3f} | Next: {target_grid:.3f}"
             print(f"[{self.login}] Price: {current_ask:.3f} | Lowest: {lowest_entry:.3f} | Next: {target_grid:.3f}",
                   end="\r")
+
 
             if current_ask <= target_grid:
                 self.open_buy_with_tp(current_ask)
