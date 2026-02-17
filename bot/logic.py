@@ -35,7 +35,7 @@ def start_bot_threads(acc_id, credential):
     settings["login"] = credential["login"]
     settings['password'] = credential["password"]  # "M@12919953m"
     settings['server'] = credential["server"]  # "Exness-MT5Real20"
-    settings['terminal_path'] = credential["meta_path"]  # "/path/to/terminal64.exe"
+    settings['terminal_path'] = credential["terminal_path"]  # "/path/to/terminal64.exe"
     bot_instance = GridBot(settings)
 
     if bot_instance.initialize():
