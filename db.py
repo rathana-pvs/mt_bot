@@ -43,11 +43,12 @@ class BotLog(Model):
         ).execute())
 
     @classmethod
-    def get_log(cls, acc_id):
-        bot = cls.get_or_none(BotLog.acc_id == acc_id.strip())
-        if bot:
-            return bot.log.toString()
-        return None
+    def get_log(cls, acc_id=None):
+        if not acc_id:
+            return None
+
+        bot = cls.get_or_none(BotLog.acc_id == str(acc_id).strip())
+        return str(bot.log) if bot else None
 
 
 db.connect()
