@@ -24,7 +24,7 @@ def on_message(client, userdata, msg):
     try:
         payload = msg.payload.decode()
         data = json.loads(payload)
-        print(data, msg.properties)
+        # print(data, msg.properties)
         # Using match to handle different actions
         response_topic = getattr(msg.properties, 'ResponseTopic', None)
         match data.get("action"):
