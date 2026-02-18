@@ -10,7 +10,7 @@ def run_trading_ticks(bot_instance):
         bot_instance.tick()
         time.sleep(0.1)
         if bot_instance.count >= 20:
-            print(bot_instance.log_message)
+            # print(bot_instance.log_message)
             bot_instance.count = 0
             BotLog.update_log(bot_instance.acc_id, bot_instance.log_message)
 
