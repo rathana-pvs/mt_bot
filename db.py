@@ -34,15 +34,17 @@ class BotLog(Model):
     class Meta:
         database = db
 
-    def update_log(self, acc_id, log_message):
-        (self.insert(acc_id=acc_id, log=log_message)
+    @classmethod
+    def update_log(cls, acc_id, log_message):
+        (cls.insert(acc_id=acc_id, log=log_message)
          .on_conflict(
-            conflict_target=[BotLog.acc_id],
-            preserve=[BotLog.log]
+            conflict_target=[cls.acc_id],
+            update={cls.log: log_message}
         ).execute())
 
-    def get_log(self, acc_id):
-        bot = self.get_or_none(BotLog.acc_id == acc_id.strip())
+    @classmethod
+    def get_log(cls, acc_id):
+        bot = cls.get_or_none(BotLog.acc_id == acc_id.strip())
         if bot:
             return bot.log.toString()
         return None
