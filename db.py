@@ -45,17 +45,17 @@ class BotLog(Model):
     @classmethod
     def get_log(cls, acc_id=None):
         if not acc_id:
-            return None
+            return ""
 
         bot = cls.get_or_none(BotLog.acc_id == str(acc_id).strip())
-        return str(bot.log) if bot else None
+        return bot.log if bot else ""
 
 
 db.connect()
 db.create_tables([BotConfig, BotLog])
 BotConfig.get_or_create(
         acc_id='rn-gold',
-        defaults={'name': 'Rathana Gold', 'pair': 'XAUUSDm', 'lot_size': 0.01, 'grid_step': 0.01, 'tp': 0.01, 'max_position': 100, 'active': 1}
+        defaults={'name': 'Rathana Gold', 'pair': 'XAUUSDm', 'lot_size': 0.01, 'grid_step': 10, 'tp': 20, 'max_position': 100, 'active': 1}
     )
 
 def find_by_acc_id(acc_id):
