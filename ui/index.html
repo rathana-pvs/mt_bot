@@ -226,7 +226,13 @@
 
         client.on('connect', () => {
             // Subscribe to private response channel
-            client.subscribe(logTopic)
+            client.subscribe(logTopic, ()=>{
+                setInterval(()=>{
+                    client.publish(COMMAND_TOPIC, JSON.stringify({action: "get_log"}, {
+                        properties: {responseTopic: logTopic}
+                    }) )
+                }, 2000)
+            })
             client.subscribe(myResponseTopic, () => {
                 const requestPayload = {
                     action: "find_data_acc_id",

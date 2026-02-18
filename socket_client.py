@@ -1,8 +1,8 @@
 import json
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion # New Import
-from publish_action import publish_message, success, failure
-from db import find_by_acc_id, update_existing_bot
+from publish_action import publish_message, success, failure, publish_log
+from db import find_by_acc_id, update_existing_bot, BotLog
 
 # from database import find_by_acc_id, update_by_acc_id
 
@@ -41,6 +41,10 @@ def on_message(client, userdata, msg):
                 result = update_existing_bot(update_payload)
                 if result:
                     success(client, response_topic)
+            case "get_log":
+                acc_id = data.get("acc_id")
+                log = BotLog.get_log(acc_id)
+                publish_log(client, response_topic, log)
             case _:
                 print(f"Unknown action received: {data.get('action')}")
 

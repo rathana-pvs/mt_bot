@@ -1,7 +1,7 @@
 from main_bot import GridBot  # The class above
 import threading
 import time
-from db import find_by_acc_id
+from db import find_by_acc_id, BotLog
 
 def run_trading_ticks(bot_instance):
     """Thread 1: High-speed trading logic (0.1s)"""
@@ -12,6 +12,7 @@ def run_trading_ticks(bot_instance):
         if bot_instance.count >= 20:
             print(bot_instance.log_message)
             bot_instance.count = 0
+            BotLog.update_log(bot_instance.acc_id, bot_instance.log_message)
 
     print(f"[{bot_instance.login}] Trading thread stopped.")
 
