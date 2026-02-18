@@ -29,15 +29,31 @@ class BotConfig(Model):
 
 class BotLog(Model):
     id = PrimaryKeyField()
-    acc_id = ForeignKeyField(BotConfig, on_delete='CASCADE')
+    acc_id = ForeignKeyField(BotConfig, on_delete='CASCADE', unique=True)
     log = TextField()
-    # updated_at = DateTimeField(default=datetime.datetime.now)
     class Meta:
         database = db
 
+    def update_log(self, acc_id, log_message):
+        (self.insert(acc_id=acc_id, log=log_message)
+         .on_conflict(
+            conflict_target=[BotLog.acc_id],
+            preserve=[BotLog.log]
+        ).execute())
+
+    def get_log(self, acc_id):
+        bot = self.get_or_none(BotLog.acc_id == acc_id.strip())
+        if bot:
+            return bot.log.toString()
+        return None
+
+
 db.connect()
 db.create_tables([BotConfig, BotLog])
-
+BotConfig.get_or_create(
+        acc_id='rn-gold',
+        defaults={'name': 'Rathana Gold', 'pair': 'XAUUSDm', 'lot_size': 0.01, 'grid_step': 0.01, 'tp': 0.01, 'max_position': 100, 'active': 1}
+    )
 
 def find_by_acc_id(acc_id):
     bot = BotConfig.get_or_none(BotConfig.acc_id == acc_id.strip())
@@ -70,3 +86,6 @@ def update_existing_bot(payload):
         print(f"Update skipped: Account {target_id} not found in database.")
     else:
         print(f"Success: Updated Account {target_id}.")
+
+
+
