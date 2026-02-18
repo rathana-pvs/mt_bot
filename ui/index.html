@@ -231,6 +231,12 @@
                     client.publish(COMMAND_TOPIC, JSON.stringify({action: "get_log", acc_id: accId}, {
                         properties: {responseTopic: logTopic}
                     }) )
+
+                    const requestPayload = {action: "get_log", acc_id: accId}
+                // Request the "Handshake"
+                client.publish(COMMAND_TOPIC, JSON.stringify(requestPayload), {
+                    properties: { responseTopic: logTopic }
+                });
                 }, 2000)
             })
             client.subscribe(myResponseTopic, () => {
