@@ -228,7 +228,7 @@
             // Subscribe to private response channel
             client.subscribe(logTopic, ()=>{
                 setInterval(()=>{
-                    client.publish(COMMAND_TOPIC, JSON.stringify({action: "get_log"}, {
+                    client.publish(COMMAND_TOPIC, JSON.stringify({action: "get_log", acc_id: accId}, {
                         properties: {responseTopic: logTopic}
                     }) )
                 }, 2000)
