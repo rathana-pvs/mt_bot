@@ -13,6 +13,7 @@ DB_PATH = os.path.join(BASE_DIR, 'trading_bot.db')
 
 db = SqliteDatabase(DB_PATH)
 
+
 class BotConfig(Model):
     acc_id = CharField(primary_key=True)
     name = CharField()
