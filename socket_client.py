@@ -31,6 +31,7 @@ def on_message(client, userdata, msg):
             case "find_data_acc_id":
                 acc_id = data.get("acc_id")
                 result = find_by_acc_id(acc_id)
+                print(result)
                 if result:
                     publish_message(client, response_topic, result)
                 else:

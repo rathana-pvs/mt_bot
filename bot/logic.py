@@ -32,6 +32,7 @@ def run_param_sync(bot_instance, acc_id):
 def start_bot_threads(acc_id, credential):
     """Launcher: Sets up both threads for one account"""
     settings = find_by_acc_id(acc_id)
+    print(settings)
     if not settings: return
     settings["login"] = credential["login"]
     settings['password'] = credential["password"]  # "M@12919953m"
